@@ -1,0 +1,28 @@
+name: Deploy TreeTrack
+
+on:
+  workflow_run:
+    workflows: ["Build TreeTrack"]
+    types:
+      - completed
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout code
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Step 2: Set up SSH key from GitHub Secrets
+      - name: Setup SSH key from GitHub Secrets
+        run: |
+          mkdir -p ~/.ssh
+          echo "$AZURE_SSH_PRIVATE_KEY" > ~/.ssh/TreeTrack-vm-key
+          chmod 600 ~/.ssh/TreeTrack-vm-key
+
+      # Step 3: Deploy to Azure VM (or another deployment target)
+      - name: Deploy to Azure VM
+        run: |
+          ssh -i ~/.ssh/TreeTrack-vm-key TreeTrack@4.222.232.148 'bash deploy.sh'
